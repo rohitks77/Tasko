@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Extension Icons</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        h1 { color: #fff; text-align: center; }
+        h2 { color: #a1a1aa; margin-top: 40px; }
+        .designs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .design-box {
+            background: #27272a;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .design-box:hover {
+            border-color: #6366f1;
+            transform: translateY(-2px);
+        }
+        .design-box.selected {
+            border-color: #22c55e;
+            background: #1e3a2f;
+        }
+        .design-box canvas {
+            border-radius: 16px;
+        }
+        .design-box p {
+            margin: 12px 0 0;
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+        .preview-section {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+            padding: 30px;
+            background: #27272a;
+            border-radius: 16px;
+        }
+        .preview-box {
+            text-align: center;
+        }
+        .preview-box canvas {
+            border: 1px solid #3f3f46;
+            border-radius: 8px;
+            background: #18181b;
+        }
+        .preview-box p {
+            margin: 8px 0 0;
+            color: #71717a;
+            font-size: 12px;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #22c55e;
+        }
+        .btn-success:hover {
+            background: #16a34a;
+        }
+        .instructions {
+            background: #27272a;
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 30px;
+        }
+        .instructions ol {
+            line-height: 2;
+            color: #a1a1aa;
+        }
+        .instructions code {
+            background: #3f3f46;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #f472b6;
+        }
+        .center { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Choose Your Icon Design</h1>
+    <p style="text-align: center; color: #71717a;">Click on a design to select it, then download</p>
+    
+    <div class="designs" id="designs"></div>
+
+    <h2 class="center">Preview Selected Design</h2>
+    <div class="preview-section">
+        <div class="preview-box">
+            <canvas id="preview128" width="128" height="128"></canvas>
+            <p>128px</p>
+        </div>
+        <div class="preview-box">
+            <canvas id="preview48" width="48" height="48"></canvas>
+            <p>48px</p>
+        </div>
+        <div class="preview-box">
+            <canvas id="preview16" width="16" height="16"></canvas>
+            <p>16px</p>
+        </div>
+    </div>
+
+    <div class="center">
+        <button class="btn-success" onclick="downloadAll()">📦 Download All Sizes</button>
+    </div>
+
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Click on a design above to select it</li>
+            <li>Click <strong>"Download All Sizes"</strong> to save the icons</li>
+            <li>Move downloaded files to <code>icons/</code> folder (replace existing)</li>
+            <li>Go to <code>chrome://extensions/</code> and reload the extension</li>
+        </ol>
+    </div>
+
+    <script>
+        let selectedDesign = 0;
+
+        const designs = [
+            {
+                name: "Gradient Check",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#8b5cf6');
+                    gradient.addColorStop(1, '#6366f1');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // Checkmark
+                    ctx.beginPath();
+                    ctx.moveTo(32 * scale, 64 * scale);
+                    ctx.lineTo(52 * scale, 84 * scale);
+                    ctx.lineTo(96 * scale, 40 * scale);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = Math.max(10 * scale, 2);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+            },
+            {
+                name: "Todo Stack",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#ec4899');
+                    gradient.addColorStop(1, '#8b5cf6');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // Stacked cards effect
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    roundRect(ctx, 24 * scale, 28 * scale, 80 * scale, 20 * scale, 6 * scale, 'rgba(255,255,255,0.3)');
+                    roundRect(ctx, 24 * scale, 54 * scale, 80 * scale, 20 * scale, 6 * scale, 'rgba(255,255,255,0.5)');
+                    roundRect(ctx, 24 * scale, 80 * scale, 80 * scale, 20 * scale, 6 * scale, '#fff');
+                    
+                    // Check on bottom card
+                    ctx.beginPath();
+                    ctx.moveTo(30 * scale, 90 * scale);
+                    ctx.lineTo(38 * scale, 96 * scale);
+                    ctx.lineTo(50 * scale, 84 * scale);
+                    ctx.strokeStyle = '#8b5cf6';
+                    ctx.lineWidth = Math.max(4 * scale, 1.5);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+            },
+            {
+                name: "Circle Check",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#06b6d4');
+                    gradient.addColorStop(1, '#6366f1');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // Circle
+                    ctx.beginPath();
+                    ctx.arc(64 * scale, 64 * scale, 36 * scale, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = Math.max(4 * scale, 1.5);
+                    ctx.stroke();
+                    
+                    // Check inside
+                    ctx.beginPath();
+                    ctx.moveTo(46 * scale, 64 * scale);
+                    ctx.lineTo(58 * scale, 76 * scale);
+                    ctx.lineTo(82 * scale, 52 * scale);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = Math.max(6 * scale, 2);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+            },
+            {
+                name: "Minimal T",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#f59e0b');
+                    gradient.addColorStop(1, '#ef4444');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // Letter T
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(32 * scale, 36 * scale, 64 * scale, 12 * scale);
+                    ctx.fillRect(58 * scale, 36 * scale, 12 * scale, 56 * scale);
+                }
+            },
+            {
+                name: "List Lines",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#22c55e');
+                    gradient.addColorStop(1, '#06b6d4');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // List bullets and lines
+                    const y1 = 40, y2 = 64, y3 = 88;
+                    [y1, y2, y3].forEach((y, i) => {
+                        // Bullet
+                        ctx.beginPath();
+                        ctx.arc(36 * scale, y * scale, 6 * scale, 0, Math.PI * 2);
+                        ctx.fillStyle = i === 0 ? '#fff' : 'rgba(255,255,255,0.6)';
+                        ctx.fill();
+                        
+                        // Line
+                        ctx.fillStyle = i === 0 ? '#fff' : 'rgba(255,255,255,0.4)';
+                        roundRect(ctx, 50 * scale, (y - 4) * scale, 46 * scale, 8 * scale, 4 * scale, ctx.fillStyle);
+                    });
+                    
+                    // Check on first bullet
+                    ctx.beginPath();
+                    ctx.moveTo(30 * scale, 40 * scale);
+                    ctx.lineTo(35 * scale, 45 * scale);
+                    ctx.lineTo(44 * scale, 35 * scale);
+                    ctx.strokeStyle = '#22c55e';
+                    ctx.lineWidth = Math.max(3 * scale, 1.5);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+            },
+            {
+                name: "Lightning Todo",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#fbbf24');
+                    gradient.addColorStop(1, '#f59e0b');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // Lightning bolt
+                    ctx.beginPath();
+                    ctx.moveTo(72 * scale, 28 * scale);
+                    ctx.lineTo(48 * scale, 64 * scale);
+                    ctx.lineTo(60 * scale, 64 * scale);
+                    ctx.lineTo(56 * scale, 100 * scale);
+                    ctx.lineTo(80 * scale, 58 * scale);
+                    ctx.lineTo(68 * scale, 58 * scale);
+                    ctx.closePath();
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                }
+            },
+            {
+                name: "Diamond Check",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    const gradient = ctx.createLinearGradient(0, 0, size, size);
+                    gradient.addColorStop(0, '#a855f7');
+                    gradient.addColorStop(1, '#ec4899');
+                    
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, gradient);
+                    
+                    // Diamond shape
+                    ctx.save();
+                    ctx.translate(64 * scale, 64 * scale);
+                    ctx.rotate(Math.PI / 4);
+                    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+                    ctx.fillRect(-28 * scale, -28 * scale, 56 * scale, 56 * scale);
+                    ctx.restore();
+                    
+                    // Check
+                    ctx.beginPath();
+                    ctx.moveTo(44 * scale, 64 * scale);
+                    ctx.lineTo(58 * scale, 78 * scale);
+                    ctx.lineTo(84 * scale, 50 * scale);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = Math.max(8 * scale, 2);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+            },
+            {
+                name: "Neon Box",
+                draw: (ctx, size) => {
+                    const scale = size / 128;
+                    
+                    // Dark background
+                    roundRect(ctx, 8 * scale, 8 * scale, 112 * scale, 112 * scale, 24 * scale, '#1e1e2e');
+                    
+                    // Neon glow checkbox
+                    ctx.shadowColor = '#6366f1';
+                    ctx.shadowBlur = 15 * scale;
+                    ctx.strokeStyle = '#6366f1';
+                    ctx.lineWidth = Math.max(4 * scale, 1.5);
+                    roundRectStroke(ctx, 36 * scale, 36 * scale, 56 * scale, 56 * scale, 12 * scale);
+                    
+                    // Neon check
+                    ctx.beginPath();
+                    ctx.moveTo(48 * scale, 64 * scale);
+                    ctx.lineTo(60 * scale, 76 * scale);
+                    ctx.lineTo(80 * scale, 52 * scale);
+                    ctx.strokeStyle = '#22c55e';
+                    ctx.shadowColor = '#22c55e';
+                    ctx.lineWidth = Math.max(6 * scale, 2);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        ];
+
+        function roundRect(ctx, x, y, w, h, r, fill) {
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, r);
+            ctx.fillStyle = fill;
+            ctx.fill();
+        }
+
+        function roundRectStroke(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, r);
+            ctx.stroke();
+        }
+
+        // Create design options
+        const designsContainer = document.getElementById('designs');
+        designs.forEach((design, index) => {
+            const box = document.createElement('div');
+            box.className = 'design-box' + (index === 0 ? ' selected' : '');
+            box.onclick = () => selectDesign(index);
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            design.draw(canvas.getContext('2d'), 128);
+            
+            const label = document.createElement('p');
+            label.textContent = design.name;
+            
+            box.appendChild(canvas);
+            box.appendChild(label);
+            designsContainer.appendChild(box);
+        });
+
+        function selectDesign(index) {
+            selectedDesign = index;
+            document.querySelectorAll('.design-box').forEach((box, i) => {
+                box.classList.toggle('selected', i === index);
+            });
+            updatePreviews();
+        }
+
+        function updatePreviews() {
+            [128, 48, 16].forEach(size => {
+                const canvas = document.getElementById('preview' + size);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, size, size);
+                designs[selectedDesign].draw(ctx, size);
+            });
+        }
+
+        function download(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            designs[selectedDesign].draw(canvas.getContext('2d'), size);
+            
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadAll() {
+            [128, 48, 16].forEach((size, index) => {
+                setTimeout(() => download(size), index * 300);
+            });
+        }
+
+        // Initial preview
+        updatePreviews();
+    </script>
+</body>
+</html>
